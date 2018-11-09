@@ -2,7 +2,7 @@
 
 podTemplate(label: 'Jenkins', containers: [
    containerTemplate(name: 'jnlp', image: 'lachlanevenson/jnlp-slave:3.10-1-alpine', args: '${computer.jnlpmac} ${computer.name}', workingDir: '/home/jenkins', resourceRequestCpu: '200m', resourceLimitCpu: '300m', resourceRequestMemory: '256Mi', resourceLimitMemory: '512Mi'),
-        //containerTemplate(name: 'maven', image: 'jenkinsxio/builder-maven:0.1.22', command: 'cat', ttyEnabled: true),
+     containerTemplate(name: 'maven', image: 'jenkinsxio/builder-maven:0.1.22', command: 'cat', ttyEnabled: true),
     //containerTemplate(name: 'gradle', image: 'gradle-4.10.2-jdk7', command: 'cat', ttyEnabled: true),
     containerTemplate(name: 'docker', image: 'docker:1.12.0', command: 'cat', ttyEnabled: true),
         containerTemplate(name: 'kubectl', image: 'pahud/eks-kubectl-docker', command: 'cat', ttyEnabled: true),
@@ -15,6 +15,48 @@ podTemplate(label: 'Jenkins', containers: [
 
 
     stage('Deploy api-orders') {
+	    
+	    
+    container('maven') {
+	  checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/api-orders.git']]
+                ])
+        sh "echo $pwd"
+        //sh "echo  'The current contents are $ls'"
+        sh "mvn clean install"
+      }
+   
+    container('docker') {
+        checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/api-orders.git']]
+                ])
+	      
+	      
+        withCredentials([[$class: 'UsernamePasswordMultiBinding',
+          credentialsId: 'dockercredentials',
+          usernameVariable: 'DOCKER_HUB_USER',
+          passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
+          sh """
+           
+            docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWORD}
+            echo "We are currently in directory $pwd"
+			      docker build -t anilbb/api-orders .
+            docker push anilbb/api-orders
+            """
+        }
+      }
+    
+	    
+	    
+	    
       container('helm') {
 
 
@@ -64,6 +106,46 @@ podTemplate(label: 'Jenkins', containers: [
 
      
      stage('Deploy api-products'){
+	     
+	     
+	     container('maven') {
+		        checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/api-products.git']]
+                ])
+		     
+        sh "echo $pwd"
+        //sh "echo  'The current contents are $ls'"
+        sh "mvn clean install"
+      }
+	     
+	container('docker') {
+		   checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/api-products.git']]
+                ])
+       
+        withCredentials([[$class: 'UsernamePasswordMultiBinding',
+          credentialsId: 'dockercredentials',
+          usernameVariable: 'DOCKER_HUB_USER',
+          passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
+          sh """
+           
+            docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWORD}
+            echo "We are currently in directory $pwd"
+			      docker build -t anilbb/api-products .
+            docker push anilbb/api-products
+            """
+        }
+      }
+	
+	     
         container('helm'){
                checkout([$class: 'GitSCM',
                     branches: [[name: '*/master']],
@@ -109,6 +191,48 @@ podTemplate(label: 'Jenkins', containers: [
      }
      
      stage('Deploy api-customers'){
+	     
+	
+	      container('maven') {
+		      
+		           checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/api-customers.git']]
+                ])
+	     
+        sh "echo $pwd"
+        //sh "echo  'The current contents are $ls'"
+        sh "mvn clean install"
+      }
+	     
+	     
+	     container('docker') {
+checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/api-customers.git']]
+                ])
+		     
+       
+        withCredentials([[$class: 'UsernamePasswordMultiBinding',
+          credentialsId: 'dockercredentials',
+          usernameVariable: 'DOCKER_HUB_USER',
+          passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
+          sh """
+           
+            docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWORD}
+            echo "We are currently in directory $pwd"
+			      docker build -t anilbb/api-customers .
+            docker push anilbb/api-customers
+            """
+        }
+      }
+	     
         container('helm') {
                checkout([$class: 'GitSCM',
                     branches: [[name: '*/master']],
@@ -158,6 +282,47 @@ podTemplate(label: 'Jenkins', containers: [
      }
      
      stage('Deploy api-employees') {
+	     
+	     
+	      container('maven') {
+		         checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/api-employees.git']]
+                ])
+		      
+        sh "echo $pwd"
+        //sh "echo  'The current contents are $ls'"
+        sh "mvn clean install"
+      }
+	     
+	     
+	     ontainer('docker') {
+       
+		       checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/api-employees.git']]
+                ])
+		     
+        withCredentials([[$class: 'UsernamePasswordMultiBinding',
+          credentialsId: 'dockercredentials',
+          usernameVariable: 'DOCKER_HUB_USER',
+          passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
+          sh """
+           
+            docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWORD}
+            echo "We are currently in directory $pwd"
+			      docker build -t anilbb/api-employees .
+            docker push anilbb/api-employees
+            """
+        }
+      }
+	     
         container('helm') {
                checkout([$class: 'GitSCM',
                     branches: [[name: '*/master']],
@@ -206,6 +371,26 @@ podTemplate(label: 'Jenkins', containers: [
      }
      
      stage('Deploy web-app') {
+	     container('docker') {
+		        checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/webapp.git']]
+                ])
+        withCredentials([[$class: 'UsernamePasswordMultiBinding',
+         credentialsId: 'dockercredentials',
+         usernameVariable: 'DOCKER_HUB_USER',
+          passwordVariable: 'DOCKER_HUB_PASSWORD']]) {
+           
+          sh """
+            docker login -u ${DOCKER_HUB_USER} -p ${DOCKER_HUB_PASSWORD}
+            docker build -t anilbb/webapp-smt:latest .
+            docker push anilbb/webapp-smt:latest
+            """
+        }
+      }
         container('helm') {
                checkout([$class: 'GitSCM',
                     branches: [[name: '*/master']],
