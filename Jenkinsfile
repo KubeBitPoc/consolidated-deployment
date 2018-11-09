@@ -62,6 +62,220 @@ podTemplate(label: 'Jenkins', containers: [
        }
     }
 
+     
+     stage('Deploy api-products'){
+        container('helm'){
+               checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/api-products.git']]
+                ])
+           
+           sh "helm list"
+        
+          try{
+            sh "helm del --purge api-products-helm"
+          }
+          catch(error) {
+              echo "No previous helm deployments found"
+          }
+          
+          
+          echo "Removing the current helm chart package"
+       
+          try{
+                sh "rm -f helm/api-products-helm-0.1.0.tgz"
+          }catch(error) {
+              echo "No previous helm package found"
+          }
+          
+          
+          echo "Creating the new helm package"
+          try {  
+            sh "helm package helm/api-products-helm" 
+          } catch(error) {
+              echo "created the package"
+          }
+          sh "cp api-products-helm-0.1.0.tgz helm/"
+          echo "Installing the new helm package"
+          
+        sh "helm install --name api-products-helm helm/api-products-helm-0.1.0.tgz"
+        
+        echo "Application anilbb/api-products successfully deployed. Use helm status anilbb/api-products to check"
+           
+        }
+     }
+     
+     stage('Deploy api-customers'){
+        container('helm') {
+               checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/api-customers.git']]
+                ])
+           
+           
+             sh "helm list"
+        
+          try{
+            sh "helm del --purge api-customers-helm"
+          }
+          catch(error) {
+              echo "No previous helm deployments found"
+          }
+          
+          
+          echo "Removing the current helm chart package"
+       
+          try{
+                sh "rm -f helm/api-customers-helm-0.1.0.tgz"
+          }catch(error) {
+              echo "No previous helm package found"
+          }
+          
+          
+          echo "Creating the new helm package"
+          try {  
+            sh "helm package helm/api-customers-helm" 
+          } catch(error) {
+              echo "created the package"
+          }
+          sh "cp api-customers-helm-0.1.0.tgz helm/"
+          echo "Installing the new helm package"
+          
+        sh "helm install --name api-customers-helm helm/api-customers-helm-0.1.0.tgz"
+        
+        echo "Application anilbb/api-customers successfully deployed. Use helm status anilbb/api-customers to check"
+           
+           
+           
+        }
+     
+     }
+     
+     stage('Deploy api-employees') {
+        container('helm') {
+               checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/api-employees.git']]
+                ])
+           
+           
+           sh "helm list"
+        
+          try{
+            sh "helm del --purge api-employees-helm"
+          }
+          catch(error) {
+              echo "No previous helm deployments found"
+          }
+          
+          
+          echo "Removing the current helm chart package"
+       
+          try{
+                sh "rm -f helm/api-employees-helm-0.1.0.tgz"
+          }catch(error) {
+              echo "No previous helm package found"
+          }
+          
+          
+          echo "Creating the new helm package"
+          try {  
+            sh "helm package helm/api-employees-helm" 
+          } catch(error) {
+              echo "created the package"
+          }
+          sh "cp api-employees-helm-0.1.0.tgz helm/"
+          echo "Installing the new helm package"
+          
+        sh "helm install --name api-employees-helm helm/api-employees-helm-0.1.0.tgz"
+        
+        echo "Application anilbb/api-employees successfully deployed. Use helm status anilbb/api-employees to check"
+           
+           
+           
+        }
+     }
+     
+     stage('Deploy web-app') {
+        container('helm') {
+               checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/webapp.git']]
+                ])
+      
+           sh " helm list "
+       
+       echo "Removing the old helm deployment"
+       try {
+            sh "helm del --purge web-app"
+       }
+       catch(error) {
+        echo "No previous helm deployments"  
+       }
+       
+       echo "Remvoving the old helm package"
+       try {
+            sh "rm -f helm/web-app-0.1.0.tgz"
+       }
+       catch(error) {
+         echo "No previous helm packages found"
+       }
+       
+       try{
+         echo "Creating the new helm package for deployment"
+         sh "helm package helm/web-app"
+       }catch(error)
+       {
+         echo "helm package created"
+       }
+       
+       sh "cp  web-app-0.1.0.tgz  helm"
+       echo "Installing the new helm deployment package"
+       sh "helm install --name web-app helm/web-app-0.1.0.tgz"
+       echo "Application web-app successfully deployed"
+           
+        }
+     }
+     
+     stage('Deploy nginx front end reverse proxy'){
+        container('kubectl') {
+        checkout([$class: 'GitSCM',
+                    branches: [[name: '*/master']],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: 'CleanCheckout']],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'githubcredentials', url: 'https://github.com/KubeBitPoc/NginxReverseProxy.git']]
+                ])
+        
+         try {
+            sh "kubectl delete deployment frontend-deployment"
+	      } catch(error) {}
+        
+        
+        sh "kubectl create -f frontend-deployment.yaml"
+        
+        try {
+            sh "kubectl delete service frontend-service"
+        } catch(error) {}
+        
+        sh "kubectl create -f frontend-service.yaml"
+        echo "Successfuly deployed the front end nginx reverse proxy"
+           
+        }
+     }
+     
 }
 
 }
