@@ -1,14 +1,18 @@
 #!/usr/bin/groovy
 
-node('Jenkins') {
+pipeline {
     
+    stages{
+    
+        stage('BuildWebApp'){
               def jenkinsFile
               stage('Loading Jenkins file') {
                 jenkinsFile = fileLoader.fromGit('Jenkinsfile', 'https://github.com/KubeBitPoc/webapp.git', 'master', null, '')
               }
 
               jenkinsFile.start()
-
+        }
+    }
 }
 
 
