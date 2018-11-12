@@ -1,13 +1,6 @@
 #!/usr/bin/groovy
 
-podTemplate(label: 'Jenkins', containers: [
-  containerTemplate(name: 'jnlp', image: 'lachlanevenson/jnlp-slave:3.10-1-alpine', args: '${computer.jnlpmac} ${computer.name}', workingDir: '/home/jenkins', resourceRequestCpu: '200m', resourceLimitCpu: '300m', resourceRequestMemory: '256Mi', resourceLimitMemory: '512Mi')
-],
-volumes: [
-   hostPathVolume(mountPath: '/root/.m2/', hostPath: '/tmp/jenkins/.m2'),
-  hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock')
-]) {
-  node('Jenkins') {
+node('Jenkins') {
     
               def jenkinsFile
               stage('Loading Jenkins file') {
@@ -15,7 +8,7 @@ volumes: [
               }
 
               jenkinsFile.start()
-  }
+
 }
 
 
