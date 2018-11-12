@@ -8,9 +8,7 @@ pipeline {
                 jenkinsFile = fileLoader.fromGit('Jenkinsfile', 'https://github.com/KubeBitPoc/webapp.git', 'master', null, '')
               }
 
-              jenkinsFile.start()
-          }
-        }
+              jenkinsFile.start()                  
     }
 }
 
