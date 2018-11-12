@@ -12,12 +12,13 @@ podTemplate(label: 'Jenkins', containers: [
     hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),  
 ]) {
   node('Jenkins') {
-    
+    container('jnlp') {
         def jenkinsFile
         stage('Loading Jenkins file') {
           jenkinsFile = fileLoader.fromGit('Jenkinsfile', 'https://github.com/KubeBitPoc/webapp.git', 'master', null, '')
         }
 
         jenkinsFile.start()
+    }
   }
 }
