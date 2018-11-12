@@ -1,15 +1,8 @@
-#!/usr/bin/groovy
-
-pipeline {
-    agent any
-    stages {
-         def jenkinsFile
-        stage('Loading Jenkins file') {
-                jenkinsFile = fileLoader.fromGit('Jenkinsfile', 'https://github.com/KubeBitPoc/webapp.git', 'master', null, '')
-              }
-
-              jenkinsFile.start()                  
-    }
+#!/usr/bin/env groovy
+def jenkinsFile
+stage('Loading Jenkins file') {
+  jenkinsFile = fileLoader.fromGit('Jenkinsfile', 'https://github.com/KubeBitPoc/webapp.git', 'master', null, '')
 }
 
+jenkinsFile.start()
 
