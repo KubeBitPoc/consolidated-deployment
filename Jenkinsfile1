@@ -1,11 +1,10 @@
 #!/usr/bin/groovy
 
 pipeline {
-    agent none
-    stages{
-    
-        stage('BuildWebApp'){
-             agent none
+    agent any
+    stages {
+stage('testing pipeline'){
+          steps{
             
               def jenkinsFile
               stage('Loading Jenkins file') {
@@ -13,6 +12,7 @@ pipeline {
               }
 
               jenkinsFile.start()
+          }
         }
     }
 }
